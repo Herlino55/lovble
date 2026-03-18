@@ -19,7 +19,7 @@ export default function Dashboard() {
     const today = deliveries.filter((d) => d.expected_date && isToday(new Date(d.expected_date)));
     const week = deliveries.filter((d) => d.expected_date && isThisWeek(new Date(d.expected_date), { weekStartsOn: 1 }));
     const delivered = deliveries.filter((d) => d.status === 'delivered');
-    const totalDelivery = week.reduce((s, d) => {
+    const totalDelivery = delivered.reduce((s, d) => {
       const expenses = d.expenses?.reduce((se, e) => se + Number(e.amount), 0) || 0;
       return s + Number(d.price) + expenses;
     }, 0);
