@@ -44,6 +44,7 @@ interface DeliveryState {
   addProofPhoto: (id: string, photoUrl: string) => Promise<void>;
   addExpense: (deliveryId: string, label: string, amount: number) => Promise<void>;
   deleteExpense: (expenseId: string, deliveryId: string) => Promise<void>;
+  deleteDelivery: (id: string) => Promise<boolean>;
   getDelivery: (id: string) => Delivery | undefined;
 }
 
@@ -207,6 +208,13 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
         d.id === deliveryId ? { ...d, expenses: d.expenses.filter((e) => e.id !== expenseId) } : d
       ),
     }));
+  },
+
+  deleteDelivery: async (id) => {
+    const { error } = await supabase.from('deliveries').delete().eq('id', id);
+    if (error) return false;
+    set((s) => ({ deliveries: s.deliveries.filter((d) => d.id !== id) }));
+    return true;
   },
 
   getDelivery: (id) => get().deliveries.find((d) => d.id === id),

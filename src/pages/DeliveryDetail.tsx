@@ -6,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Phone, User, Calendar, DollarSign, Send, ImagePlus, Plus, Trash2, Receipt, Pencil } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, User, Calendar, DollarSign, Send, ImagePlus, Plus, Trash2, Receipt, Pencil, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { DeliveryStatus } from '@/types';
 
 const STATUSES: { value: DeliveryStatus; label: string }[] = [
@@ -32,6 +33,7 @@ export default function DeliveryDetail() {
   const addProofPhoto = useDeliveryStore((s) => s.addProofPhoto);
   const addExpense = useDeliveryStore((s) => s.addExpense);
   const deleteExpense = useDeliveryStore((s) => s.deleteExpense);
+  const deleteDelivery = useDeliveryStore((s) => s.deleteDelivery);
   const [comment, setComment] = useState('');
   const [expenseLabel, setExpenseLabel] = useState('');
   const [expenseAmount, setExpenseAmount] = useState('');
@@ -89,6 +91,28 @@ export default function DeliveryDetail() {
           <Button variant="outline" className="gap-2" onClick={() => navigate(`/deliveries/${delivery.id}/edit`)}>
             <Pencil className="h-4 w-4" /> Modifier
           </Button>
+        )}
+        {canDelete && (
+          <ConfirmDialog
+            trigger={
+              <Button variant="destructive" size="icon">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            }
+            title="Supprimer cette livraison ?"
+            description={`La livraison "${delivery.reference}" sera définitivement supprimée avec tous ses commentaires et dépenses.`}
+            confirmLabel="Supprimer"
+            destructive
+            onConfirm={async () => {
+              const ok = await deleteDelivery(delivery.id);
+              if (ok) {
+                toast.success('Livraison supprimée');
+                navigate('/deliveries');
+              } else {
+                toast.error('Erreur lors de la suppression');
+              }
+            }}
+          />
         )}
         <StatusBadge status={delivery.status} />
       </div>
