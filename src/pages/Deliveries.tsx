@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { DateFilterPopover } from '@/components/DateFilterPopOver';
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: 'all', label: 'Tous les statuts' },
+  { value: 'all', label: 'Tous les statuts' }, 
   { value: 'pending', label: 'En attente' },
   { value: 'picked_up', label: 'Récupéré' },
   { value: 'in_transit', label: 'En transit' },
