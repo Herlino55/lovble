@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 const allNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/deliveries', icon: List, label: 'Livraisons' },
+  { to: '/deliveriesDay', icon: List, label: 'Livraisons du jour' },
+  { to: '/deliveriesPending', icon: List, label: 'Livraisons en cours' },
   { to: '/deliveries/new', icon: Plus, label: 'Nouvelle', requiresCreatePermission: true },
   { to: '/clients', icon: Users, label: 'Clients' },
   { to: '/permissions', icon: Shield, label: 'Droits', superAdminOnly: true },

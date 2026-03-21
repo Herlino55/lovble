@@ -7,9 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Search, Download, Plus, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { DateFilterPopover } from '@/components/DateFilterPopOver';
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: 'active', label: 'Non livrées' },
   { value: 'all', label: 'Tous les statuts' },
   { value: 'pending', label: 'En attente' },
   { value: 'picked_up', label: 'Récupéré' },
@@ -19,40 +19,35 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'cancelled', label: 'Annulé' },
 ];
 
-export default function Deliveries() {
+export default function DeliveriesEncours() {
   const deliveries = useDeliveryStore((s) => s.deliveries);
   const fetchDeliveries = useDeliveryStore((s) => s.fetchDeliveries);
   const isSuperAdmin = useRoleStore((s) => s.isSuperAdmin);
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [dateFilter, setDateFilter] = useState<string | null>(
-    new Date().toISOString().slice(0, 10)  // aujourd'hui par défaut
-  );
+  const [statusFilter, setStatusFilter] = useState('active');
 
   useEffect(() => { fetchDeliveries(); }, [fetchDeliveries]);
 
   const filtered = useMemo(() => {
-    let list = deliveries;
+        let list = deliveries;
 
-    if (dateFilter) {
-      list = list.filter((d) => {
-        const day = new Date(d.expected_date).toISOString().slice(0, 10);
-        return day === dateFilter;
-      });
-    }
+        if (statusFilter === 'active') {
+            list = list.filter((d) => !['delivered', 'cancelled', 'failed'].includes(d.status));
+        } else if (statusFilter !== 'all') {
+            list = list.filter((d) => d.status === statusFilter);
+        }
 
-    if (statusFilter !== 'all') list = list.filter((d) => d.status === statusFilter);
-    if (search) {
-      const q = search.toLowerCase();
-      list = list.filter((d) =>
-        d.reference.toLowerCase().includes(q) ||
-        d.recipient_name.toLowerCase().includes(q) ||
-        d.address.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [deliveries, statusFilter, search, dateFilter]);
+        if (search) {
+            const q = search.toLowerCase();
+            list = list.filter((d) =>
+            d.reference.toLowerCase().includes(q) ||
+            d.recipient_name.toLowerCase().includes(q) ||
+            d.address.toLowerCase().includes(q)
+            );
+        }
+        return list;
+   }, [deliveries, statusFilter, search]);
 
   const exportCSV = () => {
     const headers = 'Référence,Destinataire,Adresse,Statut,Prix,Date\n';
@@ -96,7 +91,6 @@ export default function Deliveries() {
         <Button variant="outline" onClick={exportCSV} className="gap-2">
           <Download className="h-4 w-4" /> CSV
         </Button>
-        <DateFilterPopover value={dateFilter} onChange={setDateFilter} />
       </div>
 
       {filtered.length === 0 ? (

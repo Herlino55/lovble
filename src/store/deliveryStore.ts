@@ -57,7 +57,7 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
     const { data: deliveries } = await supabase
       .from('deliveries')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('expected_date', { ascending: false });
 
     if (!deliveries) { set({ loading: false }); return; }
 

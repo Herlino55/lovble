@@ -16,6 +16,8 @@ import DeliveryDetail from "@/pages/DeliveryDetail";
 import Clients from "@/pages/Clients";
 import UserPermissions from "@/pages/UserPermissions";
 import NotFound from "./pages/NotFound.tsx";
+import DeliveriesDay from './pages/DeliveriesDays.tsx';
+import DeliveriesEncours from './pages/DeleveryEnCours.tsx';
 
 const queryClient = new QueryClient();
 
@@ -86,6 +88,8 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
               <Route path="deliveries" element={<Deliveries />} />
+              <Route path="deliveriesDay" element={<DeliveriesDay />} />
+              <Route path="deliveriesPending" element={<DeliveriesEncours />} />
               <Route path="deliveries/new" element={<RequireCreateDeliveryRoute><NewDelivery /></RequireCreateDeliveryRoute>} />
               <Route path="deliveries/:id/edit" element={<RequireUpdateDeliveryRoute><EditDelivery /></RequireUpdateDeliveryRoute>} />
               <Route path="deliveries/:id" element={<DeliveryDetail />} />
