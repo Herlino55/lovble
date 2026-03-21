@@ -11,7 +11,7 @@ interface DateFilterPopoverProps {
   onChange: (date: string | null) => void;
 }
 
-export function DateFilterPopOver({ value, onChange }: DateFilterPopoverProps) {
+export function DateFilterPopover({ value, onChange }: DateFilterPopoverProps) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState(value ?? '');
 

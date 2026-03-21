@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Search, Download, Plus, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { DateFilterPopOver } from '@/components/DateFilterPopOver';
+import { DateFilterPopover } from '@/components/DateFilterPopOver';
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'all', label: 'Tous les statuts' }, 
@@ -96,7 +96,7 @@ export default function Deliveries() {
         <Button variant="outline" onClick={exportCSV} className="gap-2">
           <Download className="h-4 w-4" /> CSV
         </Button>
-        <DateFilterPopOver value={dateFilter} onChange={setDateFilter} />
+        <DateFilterPopover value={dateFilter} onChange={setDateFilter} />
       </div>
 
       {filtered.length === 0 ? (
