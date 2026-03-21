@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Search, Download, Plus, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { DateFilterPopover } from '@/components/DateFilterPopOver';
+import { DateFilterPopover } from '@/components/DateFilterPopover';
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'all', label: 'Tous les statuts' }, 
