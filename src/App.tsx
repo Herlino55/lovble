@@ -26,7 +26,6 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
   const loading = useAuthStore((s) => s.loading);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const fetchRole = useRoleStore((s) => s.fetchRole);
-  const roleLoading = useRoleStore((s) => s.loading);
 
   useEffect(() => {
     initialize();
@@ -36,7 +35,7 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
     if (isAuthenticated) fetchRole();
   }, [isAuthenticated, fetchRole]);
 
-  if (loading || (isAuthenticated && roleLoading)) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />

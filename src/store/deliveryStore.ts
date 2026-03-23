@@ -33,6 +33,20 @@ export interface DeliveryInput {
   clientId?: string;
 }
 
+// Mapping réutilisable pour éviter la répétition dans add/update
+const toDbPayload = (d: DeliveryInput) => ({
+  reference: d.reference,
+  description: d.description,
+  photos: d.photos,
+  recipient_name: d.recipientName,
+  recipient_phone: d.recipientPhone,
+  address: d.address,
+  price: d.price,
+  expected_date: d.expectedDate || null,
+  notes: d.notes,
+  client_id: d.clientId || null,
+});
+
 interface DeliveryState {
   deliveries: Delivery[];
   loading: boolean;
@@ -52,55 +66,50 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
   deliveries: [],
   loading: false,
 
+  // ✅ 3 requêtes → 1 seule requête avec JOIN
   fetchDeliveries: async () => {
     set({ loading: true });
-    const { data: deliveries } = await supabase
+
+    const { data, error } = await supabase
       .from('deliveries')
-      .select('*')
+      .select(`
+        *,
+        comments:delivery_comments(*),
+        expenses:delivery_expenses(*)
+      `)
       .order('expected_date', { ascending: false });
 
-    if (!deliveries) { set({ loading: false }); return; }
+    if (error || !data) { set({ loading: false }); return; }
 
-    const { data: comments } = await supabase
-      .from('delivery_comments')
-      .select('*')
-      .order('created_at', { ascending: true });
-
-    const { data: expenses } = await supabase
-      .from('delivery_expenses')
-      .select('*')
-      .order('created_at', { ascending: true });
-
-    const enriched: Delivery[] = deliveries.map((d) => ({
+    const enriched: Delivery[] = data.map((d: any) => ({
       ...d,
-      comments: (comments || []).filter((c) => c.delivery_id === d.id),
-      expenses: ((expenses || []) as DeliveryExpense[]).filter((e) => e.delivery_id === d.id),
+      comments: d.comments ?? [],
+      expenses: (d.expenses ?? []) as DeliveryExpense[],
     }));
 
     set({ deliveries: enriched, loading: false });
   },
 
+  // ✅ getUser + profile en parallèle au lieu de séquentiel
   addDelivery: async (d) => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const [{ data: { user } }, ] = await Promise.all([
+      supabase.auth.getUser(),
+    ]);
     if (!user) return null;
 
-    // Sub-users create deliveries under their parent's id
-    const { data: profile } = await supabase.from('profiles').select('parent_id').eq('user_id', user.id).single();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('parent_id')
+      .eq('user_id', user.id)
+      .single();
+
     const ownerId = (profile as any)?.parent_id || user.id;
 
-    const { data } = await supabase.from('deliveries').insert({
-      user_id: ownerId,
-      reference: d.reference,
-      description: d.description,
-      photos: d.photos,
-      recipient_name: d.recipientName,
-      recipient_phone: d.recipientPhone,
-      address: d.address,
-      price: d.price,
-      expected_date: d.expectedDate || null,
-      notes: d.notes,
-      client_id: d.clientId || null,
-    }).select().single();
+    const { data } = await supabase
+      .from('deliveries')
+      .insert({ user_id: ownerId, ...toDbPayload(d) })
+      .select()
+      .single();
 
     if (data) {
       set((s) => ({ deliveries: [{ ...data, comments: [], expenses: [] }, ...s.deliveries] }));
@@ -109,35 +118,24 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
     return null;
   },
 
+  // ✅ Payload extrait via toDbPayload
   updateDelivery: async (id, d) => {
-    const { data } = await supabase.from('deliveries').update({
-      reference: d.reference,
-      description: d.description,
-      photos: d.photos,
-      recipient_name: d.recipientName,
-      recipient_phone: d.recipientPhone,
-      address: d.address,
-      price: d.price,
-      expected_date: d.expectedDate || null,
-      notes: d.notes,
-      client_id: d.clientId || null,
-    }).eq('id', id).select().single();
+    const { data } = await supabase
+      .from('deliveries')
+      .update(toDbPayload(d))
+      .eq('id', id)
+      .select()
+      .single();
 
     if (!data) return false;
 
     set((s) => ({
       deliveries: s.deliveries.map((delivery) =>
         delivery.id === id
-          ? {
-              ...delivery,
-              ...data,
-              comments: delivery.comments,
-              expenses: delivery.expenses,
-            }
+          ? { ...delivery, ...data, comments: delivery.comments, expenses: delivery.expenses }
           : delivery
       ),
     }));
-
     return true;
   },
 
@@ -154,11 +152,11 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data } = await supabase.from('delivery_comments').insert({
-      delivery_id: deliveryId,
-      user_id: user.id,
-      text,
-    }).select().single();
+    const { data } = await supabase
+      .from('delivery_comments')
+      .insert({ delivery_id: deliveryId, user_id: user.id, text })
+      .select()
+      .single();
 
     if (data) {
       set((s) => ({
@@ -185,12 +183,11 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data } = await supabase.from('delivery_expenses').insert({
-      delivery_id: deliveryId,
-      user_id: user.id,
-      label,
-      amount,
-    }).select().single();
+    const { data } = await supabase
+      .from('delivery_expenses')
+      .insert({ delivery_id: deliveryId, user_id: user.id, label, amount })
+      .select()
+      .single();
 
     if (data) {
       set((s) => ({

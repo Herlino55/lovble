@@ -13,7 +13,9 @@ export default function Dashboard() {
   const fetchDeliveries = useDeliveryStore((s) => s.fetchDeliveries);
   const loading = useDeliveryStore((s) => s.loading);
 
-  useEffect(() => { fetchDeliveries(); }, [fetchDeliveries]);
+  useEffect(() => { 
+    if (deliveries.length === 0) fetchDeliveries(); // ✅ skip si déjà chargé
+  }, []);
 
   const stats = useMemo(() => {
     const today = deliveries.filter((d) => d.expected_date && isToday(new Date(d.expected_date)));
@@ -36,7 +38,6 @@ export default function Dashboard() {
     });
   }, [deliveries]);
 
-  console.log(deliveries)
 
   const activeDeliveries = useMemo(() =>
     deliveries.filter((d) => ['pending', 'picked_up', 'in_transit'].includes(d.status)),

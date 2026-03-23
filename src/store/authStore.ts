@@ -29,10 +29,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         .single();
       set({ user: session.user, profile, isAuthenticated: true, loading: false });
     } else {
-      set({ user: null, profile: null, isAuthenticated: false, loading: false });
+      set({ loading: false });
     }
 
     supabase.auth.onAuthStateChange(async (event, session) => {
+      // ✅ Ignorer SIGNED_IN initial (déjà géré au-dessus)
+      if (event === 'INITIAL_SESSION') return;
+      
       if (session?.user) {
         const { data: profile } = await supabase
           .from('profiles')
